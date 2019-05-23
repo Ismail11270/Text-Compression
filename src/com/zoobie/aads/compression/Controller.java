@@ -9,6 +9,7 @@ public class Controller {
     private Compressor decompressor;
     private File inputFile;
     private File outputFile;
+    private File binaryFile;
     private Scanner scanner;
     private Scanner fileScanner;
     private FileWriter fileWriter = null;
@@ -58,7 +59,9 @@ public class Controller {
                 } else if (flag == 1) {
                     fileScanner.skip(fileScanner.delimiter());
                     letterString = fileScanner.nextLine();
-                    letter = letterString.charAt(0);
+                    if(letterString.length() > 0){
+                        letter = letterString.charAt(0);
+                    }else letter = ' ';
                     results.add(new NegativeOutput(letter));
                 }
 
@@ -71,35 +74,55 @@ public class Controller {
     }
 
     public Controller(String inputFile, String outputFile) {
-            this.inputFile = new File(inputFile);
-            this.outputFile = new File(outputFile);
+        this.inputFile = new File(inputFile);
+        this.outputFile = new File(outputFile);
+    }
+
+    public void writeStandardOutputToFile(List<? extends Output> list) throws IOException {
+        fileWriter = new FileWriter(outputFile);
+        for (Output a : list) {
+            fileWriter.write(a.toString() + "\n");
         }
+        fileWriter.close();
+    }
 
-        public void writeToFile (List < ? extends Output > list) throws IOException {
-            fileWriter = new FileWriter(outputFile);
-            for (Output a : list) {
-                fileWriter.write(a.toString() + "\n");
-            }
-            fileWriter.close();
+    public void writeStringToFile(String text)
+            throws IOException {
+        fileWriter = new FileWriter(outputFile);
+        fileWriter.write(text);
+        fileWriter.close();
+    }
+
+    public void runCompressor() {
+        String input = "";
+        input = readFromFile();
+
+        compressor = new Compressor(input);
+        compressor.compress();
+        try {
+            writeStandardOutputToFile(compressor.getResult());
+           // writeStringToFile(compressor.getBinaryOutput());
+        } catch (IOException e) {
+            System.out.println(e);
         }
+        System.out.println(compressor.getBinaryOutput());
 
-        public void runCompressor () {
-            String input = "";
-            input = readFromFile();
+    }
 
-            compressor = new Compressor(input);
-            compressor.compress();
-            try {
-                writeToFile(compressor.getResult());
-            } catch (IOException e) {
-                System.out.println(e);
-            }
-        }
-
-        public void runDecompressor () {
-            List<Output> compressedInput = new ArrayList<>();
-            compressedInput = readStandardResultsFromFile();
-            compressor = new Compressor(compressedInput,'A');
-            compressor.decompress();
+    public void runDecompressor() {
+        List<Output> compressedInput = new ArrayList<>();
+        compressedInput = readStandardResultsFromFile();
+        System.out.print("Enter the dictionary letter: ");
+        scanner = new Scanner(System.in);
+        char a = scanner.nextLine().charAt(0);
+        compressor = new Compressor(compressedInput, a);
+        String result = compressor.decompress();
+        try {
+            writeStringToFile(result);
+        }catch(IOException e){
+            System.out.println(e + " file was not found.");
+        }finally {
+            System.out.println(result);
         }
     }
+}

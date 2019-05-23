@@ -7,12 +7,10 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-//        Compressor compressor = new Compressor("can you can cans as a canner can can cans");
-//        String inputString = "HHHLO WORLD";
-//        compressor.compress();
-        Controller controller = new Controller("input.txt","results.txt");
-        //controller.runCompressor();
-        controller.runDecompressor();
+//        Controller controller = new Controller("compressed_standard.txt","decompressed.txt");
+      Controller controller = new Controller("decompressed.txt","compressed_standard.txt");
+        controller.runCompressor();
+//        controller.runDecompressor();
 
     }
 }

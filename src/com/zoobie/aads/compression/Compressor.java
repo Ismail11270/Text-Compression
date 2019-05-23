@@ -2,7 +2,6 @@ package com.zoobie.aads.compression;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -10,24 +9,29 @@ public class Compressor {
 
     private final int dictionarySize = 8;
     private final int bufferSize = 4;
-    private String inputString;
+    private String decompressedString;
     private Vector<Character> inputVec;
     private Vector<Character> dictAndBuff;
     private String dictionary;
 
     public Compressor(String inputString) {
-        this.inputString = inputString;
+        this.decompressedString = inputString;
         inputVec = new Vector<>();
         dictAndBuff = new Vector<>();
     }
 
+    /**
+     * Constructor for decompressor
+     * @param result
+     * @param dictionary
+     */
     public Compressor(List<Output> result, Character dictionary){
         this.result = result;
         this.dictionary = "";
         for(int i = 0; i < dictionarySize; i++){
             this.dictionary += dictionary;
         }
-        this.inputString = "";
+        this.decompressedString = "";
     }
 
     private List<Output> result = new ArrayList<>();
@@ -37,7 +41,7 @@ public class Compressor {
 
         char[] input;
 
-        input = inputString.toCharArray();
+        input = decompressedString.toCharArray();
 
         for (Character i : input) {
             inputVec.add(i);
@@ -56,7 +60,7 @@ public class Compressor {
         System.out.println(inputVec);
 
 
-        while(dictAndBuff.size() > dictionarySize){
+        while(dictAndBuff.size() > dictionarySize + 1){
             Output output = contains(dictAndBuff);
             System.out.println(output);
             moveLense(output.getSize());
@@ -67,21 +71,24 @@ public class Compressor {
         printResults();
     }
 
-    public void decompress(){
+    public String decompress(){
         for(Output i : result){
 //            Output i = result.get(0);
             if(!i.getFlag()){
-                String a = dictionary.substring(i.getOffset(),i.getOffset() + i.getSize());
+                String a = dictionary.substring(dictionarySize - i.getOffset() - 1,dictionarySize - i.getOffset() + i.getSize() - 1);
                 System.out.println(a);
-                System.out.println("HELLO");
-                dictionary = dictionary.substring(0+i.getSize(),dictionarySize - i.getSize());
+                dictionary = dictionary.substring(0+i.getSize(),dictionarySize);
                 dictionary += a;
+                decompressedString +=a;
             }else{
-                dictionary = dictionary.substring(1,dictionarySize - 2);
+                dictionary = dictionary.substring(1,dictionarySize);
                 dictionary+=i.getLetter();
-
+                System.out.println(i.getLetter());
+                decompressedString +=i.getLetter();
             }
         }
+        System.out.println(decompressedString);
+        return decompressedString;
     }
     private Output contains(Vector<Character> dictAndBuff) {
         String dict = "";
@@ -134,5 +141,35 @@ public class Compressor {
     public List<Output> getResult(){
         return result;
     }
+
+
+    public String getBinaryOutput(){
+        String binaryResult = "";
+        for(Output i : result){
+            if(i.getFlag()){
+                binaryResult+="1" + Integer.toBinaryString(i.getLetter()) + " ";
+            }else{
+                binaryResult+="0" + intToBinaryString(i.getOffset()) + intToBinaryString(i.getSize()) + " ";
+            }
+        }
+        return binaryResult;
+    }
+    private String intToBinaryString(int a){
+        String binary = "";
+        if(a >= 4){
+            binary += '1';
+            a -= 4;
+        }else binary+='0';
+        if(a >= 2){
+            binary+='1';
+            a-=2;
+        }else binary+='0';
+        if(a >= 1){
+            binary+='1';
+            a-=1;
+        }else binary+='0';
+        return binary;
+    }
+
 
 }
